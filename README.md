@@ -4,7 +4,7 @@ AsyncSQL is the missing library in dotnet world for executing raw SQL queries as
 
 # Supported Database
 
-MySQL 5.6+;
+MySQL 5.6+
 
 # Usage
 
