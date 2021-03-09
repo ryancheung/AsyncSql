@@ -9,4 +9,8 @@
     <ProjectReference Include="..\src\AsyncSql.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="sql" />
+  </ItemGroup>
+
 </Project>
