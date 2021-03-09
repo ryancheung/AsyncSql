@@ -46,7 +46,7 @@ namespace AsyncSql
         public int Poolsize;
     }
 
-    public abstract class MySqlBase<T>
+    public abstract class MySqlBase<T> : IDisposable
     {
         Dictionary<T, string> _preparedQueries = new Dictionary<T, string>();
         ConcurrentQueue<ISqlOperation> _queue = new ConcurrentQueue<ISqlOperation>();
@@ -55,6 +55,8 @@ namespace AsyncSql
         public MySqlConnectionInfo ConnectionInfo => _connectionInfo;
 
         DatabaseWorker<T> _worker;
+
+        private bool _disposed;
 
         public MySqlErrorCode Initialize(MySqlConnectionInfo connectionInfo)
         {
@@ -335,5 +337,23 @@ namespace AsyncSql
         }
 
         public abstract void PreparedStatements();
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                _worker.Dispose();
+                _queue.Clear();
+            }
+
+            _disposed = true;
+        }
     }
 }

@@ -49,6 +49,8 @@ namespace AsyncSql.Sample
 
                 Console.WriteLine("Query success. accountId: {0}, accountName: {1}", accountId, accountName);
             }
+
+            TestDB.Dispose();
         }
     }
 }
