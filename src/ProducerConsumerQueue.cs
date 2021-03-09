@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2021 CypherCore <https://github.com/ryancheung/AsyncSql>
+ * Copyright (C) 2021 ryancheung <https://github.com/ryancheung/AsyncSql>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
