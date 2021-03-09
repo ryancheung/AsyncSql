@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
 using System.Threading;
 using System.Collections.Concurrent;
 
@@ -25,19 +26,21 @@ namespace AsyncSql
         bool Execute<T>(MySqlBase<T> mySqlBase);
     }
 
-    class DatabaseWorker<T>
+    class DatabaseWorker<T> : IDisposable
     {
         Thread _workerThread;
         volatile bool _cancelationToken;
         ConcurrentQueue<ISqlOperation> _queue;
         MySqlBase<T> _mySqlBase;
 
+        private bool _disposed;
+
         public DatabaseWorker(ConcurrentQueue<ISqlOperation> newQueue, MySqlBase<T> mySqlBase)
         {
             _queue = newQueue;
             _mySqlBase = mySqlBase;
             _cancelationToken = false;
-            _workerThread = new Thread(WorkerThread);
+            _workerThread = new Thread(WorkerThread) { Name = $"DB {mySqlBase.ConnectionInfo.Database} Worker Thread" };
             _workerThread.Start();
         }
 
@@ -57,6 +60,25 @@ namespace AsyncSql
 
                 operation.Execute(_mySqlBase);
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                _cancelationToken = true;
+
+                _workerThread.Join();
+            }
+
+            _disposed = true;
         }
     }
 }

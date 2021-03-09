@@ -52,6 +52,8 @@ namespace AsyncSql
         ConcurrentQueue<ISqlOperation> _queue = new ConcurrentQueue<ISqlOperation>();
 
         MySqlConnectionInfo _connectionInfo;
+        public MySqlConnectionInfo ConnectionInfo => _connectionInfo;
+
         DatabaseWorker<T> _worker;
 
         public MySqlErrorCode Initialize(MySqlConnectionInfo connectionInfo)
