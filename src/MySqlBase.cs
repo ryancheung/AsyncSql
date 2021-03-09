@@ -18,7 +18,6 @@
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,7 +48,7 @@ namespace AsyncSql
     public abstract class MySqlBase<T> : IDisposable
     {
         Dictionary<T, string> _preparedQueries = new Dictionary<T, string>();
-        ConcurrentQueue<ISqlOperation> _queue = new ConcurrentQueue<ISqlOperation>();
+        ProducerConsumerQueue<ISqlOperation> _queue = new ProducerConsumerQueue<ISqlOperation>();
 
         MySqlConnectionInfo _connectionInfo;
         public MySqlConnectionInfo ConnectionInfo => _connectionInfo;
@@ -116,7 +115,7 @@ namespace AsyncSql
         public void Execute(PreparedStatement stmt)
         {
             PreparedStatementTask task = new PreparedStatementTask(stmt);
-            _queue.Enqueue(task);
+            _queue.Push(task);
         }
 
         public void ExecuteOrAppend(SQLTransaction trans, PreparedStatement stmt)
@@ -158,7 +157,7 @@ namespace AsyncSql
             PreparedStatementTask task = new PreparedStatementTask(stmt, true);
             // Store future result before enqueueing - task might get already processed and deleted before returning from this method
             Task<SQLResult> result = task.GetFuture();
-            _queue.Enqueue(task);
+            _queue.Push(task);
             return new QueryCallback(result);
         }
 
@@ -167,7 +166,7 @@ namespace AsyncSql
             SQLQueryHolderTask<R> task = new SQLQueryHolderTask<R>(holder);
             // Store future result before enqueueing - task might get already processed and deleted before returning from this method
             Task<SQLQueryHolder<R>> result = task.GetFuture();
-            _queue.Enqueue(task);
+            _queue.Push(task);
             return result;
         }
 
@@ -255,14 +254,14 @@ namespace AsyncSql
 
         public void CommitTransaction(SQLTransaction transaction)
         {
-            _queue.Enqueue(new TransactionTask(transaction));
+            _queue.Push(new TransactionTask(transaction));
         }
 
         public TransactionCallback AsyncCommitTransaction(SQLTransaction transaction)
         {
             TransactionWithResultTask task = new TransactionWithResultTask(transaction);
             Task<bool> result = task.GetFuture();
-            _queue.Enqueue(task);
+            _queue.Push(task);
             return new TransactionCallback(result);
         }
 
@@ -349,8 +348,8 @@ namespace AsyncSql
 
             if (disposing)
             {
+                _queue.Cancel();
                 _worker.Dispose();
-                _queue.Clear();
             }
 
             _disposed = true;

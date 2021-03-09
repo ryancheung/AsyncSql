@@ -17,7 +17,6 @@
 
 using System;
 using System.Threading;
-using System.Collections.Concurrent;
 
 namespace AsyncSql
 {
@@ -30,12 +29,12 @@ namespace AsyncSql
     {
         Thread _workerThread;
         volatile bool _cancelationToken;
-        ConcurrentQueue<ISqlOperation> _queue;
+        ProducerConsumerQueue<ISqlOperation> _queue;
         MySqlBase<T> _mySqlBase;
 
         private bool _disposed;
 
-        public DatabaseWorker(ConcurrentQueue<ISqlOperation> newQueue, MySqlBase<T> mySqlBase)
+        public DatabaseWorker(ProducerConsumerQueue<ISqlOperation> newQueue, MySqlBase<T> mySqlBase)
         {
             _queue = newQueue;
             _mySqlBase = mySqlBase;
@@ -53,9 +52,9 @@ namespace AsyncSql
             {
                 ISqlOperation operation;
 
-                while (!_queue.TryDequeue(out operation) && !_cancelationToken) {}
+                _queue.WaitAndPop(out operation);
 
-                if (operation == null)
+                if (_cancelationToken || operation == null)
                     return;
 
                 operation.Execute(_mySqlBase);
