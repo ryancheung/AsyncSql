@@ -22,7 +22,7 @@ namespace AsyncSql
 {
     public class PreparedStatement
     {
-        public string CommandText;
+        public readonly string CommandText;
         public Dictionary<int, object> Parameters = new Dictionary<int, object>();
 
         public PreparedStatement(string commandText)
