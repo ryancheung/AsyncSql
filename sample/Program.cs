@@ -56,6 +56,7 @@ namespace AsyncSql.Sample
 
             AsyncCallbackProcessor<QueryCallback> queryProcessor = new AsyncCallbackProcessor<QueryCallback>();
 
+            stmt = TestDB.GetPreparedStatement(LoginStatements.SEL_ACCOUNT_LIST);
             queryProcessor.AddCallback(TestDB.AsyncQuery(stmt).WithCallback(async result =>
             {
                 if (!result.IsEmpty())
