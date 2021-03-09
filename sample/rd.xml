@@ -1,0 +1,7 @@
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <Assembly Name="NLog" Dynamic="Required All"/>
+    <Assembly Name="AsyncSql" Dynamic="Required All" />
+    <Assembly Name="AsyncSql.Sample" Dynamic="Required All" />
+  </Application>
+</Directives>
