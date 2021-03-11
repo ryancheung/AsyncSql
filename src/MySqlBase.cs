@@ -92,6 +92,7 @@ namespace AsyncSql
                     using (MySqlCommand cmd = Connection.CreateCommand())
                     {
                         cmd.CommandText = stmt.CommandText;
+                        cmd.Prepare();
                         foreach (var parameter in stmt.Parameters)
                             cmd.Parameters.AddWithValue("@" + parameter.Key, parameter.Value);
 
@@ -140,6 +141,7 @@ namespace AsyncSql
 
                 MySqlCommand cmd = Connection.CreateCommand();
                 cmd.CommandText = stmt.CommandText;
+                cmd.Prepare();
                 foreach (var parameter in stmt.Parameters)
                     cmd.Parameters.AddWithValue("@" + parameter.Key, parameter.Value);
 
