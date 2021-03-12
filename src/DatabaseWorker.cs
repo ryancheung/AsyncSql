@@ -27,20 +27,26 @@ namespace AsyncSql
 
     class DatabaseWorker<T> : IDisposable
     {
-        Thread _workerThread;
+        Thread[] _workerThreads;
         volatile bool _cancelationToken;
         ProducerConsumerQueue<ISqlOperation> _queue;
         MySqlBase<T> _mySqlBase;
 
         private bool _disposed;
 
-        public DatabaseWorker(ProducerConsumerQueue<ISqlOperation> newQueue, MySqlBase<T> mySqlBase)
+        public DatabaseWorker(ProducerConsumerQueue<ISqlOperation> newQueue, MySqlBase<T> mySqlBase, int threads = 1)
         {
             _queue = newQueue;
             _mySqlBase = mySqlBase;
             _cancelationToken = false;
-            _workerThread = new Thread(WorkerThread) { Name = $"DB {mySqlBase.ConnectionInfo.Database} Worker Thread" };
-            _workerThread.Start();
+
+            _workerThreads = new Thread[threads <= 0 ? 1 : threads];
+
+            for(int i = 0; i < threads; i++)
+            {
+                _workerThreads[i] = new Thread(WorkerThread) { Name = $"DB {mySqlBase.ConnectionInfo.Database} Worker Thread#{i}" };
+                _workerThreads[i].Start();
+            }
         }
 
         void WorkerThread()
@@ -74,7 +80,8 @@ namespace AsyncSql
             {
                 _cancelationToken = true;
 
-                _workerThread.Join();
+                foreach(var thread in _workerThreads)
+                    thread.Join();
             }
 
             _disposed = true;

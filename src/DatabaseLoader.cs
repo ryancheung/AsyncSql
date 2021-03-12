@@ -28,11 +28,11 @@ namespace AsyncSql
             _autoSetup = autoSetup;
         }
 
-        public void AddDatabase<T>(MySqlBase<T> database, MySqlConnectionInfo connectionInfo)
+        public void AddDatabase<T>(MySqlBase<T> database, MySqlConnectionInfo connectionInfo, int asyncThreads = 1)
         {
             _open.Add(() =>
             {
-                var error = database.Initialize(connectionInfo);
+                var error = database.Initialize(connectionInfo, asyncThreads);
                 if (error != MySqlErrorCode.None)
                 {
                     // Database does not exist
@@ -47,7 +47,7 @@ namespace AsyncSql
                         Loggers.Server?.Info($"Creating database \"{connectionInfo.Database}\"...");
                         string sqlString = $"CREATE DATABASE `{connectionInfo.Database}` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci";
                         // Try to create the database and connect again if auto setup is enabled
-                        if (database.Apply(sqlString) && database.Initialize(connectionInfo) == MySqlErrorCode.None)
+                        if (database.Apply(sqlString) && database.Initialize(connectionInfo, asyncThreads) == MySqlErrorCode.None)
                             error = MySqlErrorCode.None;
                     }
 

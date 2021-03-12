@@ -18,7 +18,7 @@ namespace AsyncSql.Sample
                 Username = "asyncsql",
                 Password = "asyncsql",
                 Database = "asyncsql_test"
-            });
+            }, 5);
 
             var dbLoaded = loader.Load();
 
@@ -56,34 +56,39 @@ namespace AsyncSql.Sample
 
             AsyncCallbackProcessor<QueryCallback> queryProcessor = new AsyncCallbackProcessor<QueryCallback>();
 
-            stmt = TestDB.GetPreparedStatement(LoginStatements.SEL_ACCOUNT_LIST);
-            queryProcessor.AddCallback(TestDB.AsyncQuery(stmt).WithCallback(async result =>
+            for (int i = 0; i < 5; i++)
             {
-                if (!result.IsEmpty())
+                stmt = TestDB.GetPreparedStatement(LoginStatements.SEL_ACCOUNT_LIST);
+                queryProcessor.AddCallback(TestDB.AsyncQuery(stmt).WithCallback(async result =>
                 {
-                    do
+                    if (!result.IsEmpty())
                     {
-                        var accountId = result.Read<uint>(0);
-                        string accountName = result.Read<string>(1);
-                        Console.WriteLine("Async execute query {0} - accountId: {1}, accountName: {2}", stmt.CommandText, accountId, accountName);
+                        do
+                        {
+                            var accountId = result.Read<uint>(0);
+                            string accountName = result.Read<string>(1);
+                            Console.WriteLine("Async execute query {0} - accountId: {1}, accountName: {2}", stmt.CommandText, accountId, accountName);
 
-                    } while (result.NextRow());
-                }
+                        } while (result.NextRow());
+                    }
 
-                await AsyncFoo();
-                Console.WriteLine("Async query callback DONE.");
-            }));
+                    await AsyncFoo();
+                    Console.WriteLine("Async query callback DONE.");
+                }));
+            }
 
             // Process async queries in another thread.
-            var updateThread = new Thread(() => {
+            var updateThread = new Thread(() =>
+            {
 
-                while(true)
+                while (true)
                 {
                     queryProcessor.ProcessReadyCallbacks();
                     Thread.Sleep(500);
                 }
 
-            }) { IsBackground = true, Name = "AsyncQueryThread" };
+            })
+            { IsBackground = true, Name = "AsyncQueryThread" };
             updateThread.Start();
 
             Thread.Sleep(2000);
@@ -93,7 +98,8 @@ namespace AsyncSql.Sample
 
         static async Task AsyncFoo()
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 Console.WriteLine("Mimic a task delay.");
                 Task.Delay(1000).Wait();
             });

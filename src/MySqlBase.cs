@@ -57,10 +57,10 @@ namespace AsyncSql
 
         private bool _disposed;
 
-        public MySqlErrorCode Initialize(MySqlConnectionInfo connectionInfo)
+        public MySqlErrorCode Initialize(MySqlConnectionInfo connectionInfo, int asyncThreads = 1)
         {
             _connectionInfo = connectionInfo;
-            _worker = new DatabaseWorker<T>(_queue, this);
+            _worker = new DatabaseWorker<T>(_queue, this, asyncThreads);
 
             try
             {
